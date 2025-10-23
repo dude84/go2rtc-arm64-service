@@ -1,0 +1,5 @@
+streams:
+  cam0:
+#    - exec:rpicam-vid -t 0 --inline -o -
+    - exec:rpicam-vid -t 0 --inline --codec h264 --profile high --width 1920 --height 1080 -o -
+#    - exec:rpicam-vid -t 0 --codec h264 --profile high --inline --framerate 15 --width 1280 --height 720 --bitrate 2000000 -o -
