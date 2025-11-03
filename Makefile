@@ -3,7 +3,7 @@
 # Variables
 BINARY = ./bin/go2rtc
 CONFIG = ./bin/go2rtc.yaml
-GO2RTC_URL = https://github.com/AlexxIT/go2rtc/releases/latest/download/go2rtc_linux_arm64
+GO2RTC_URL = https://github.com/AlexxIT/go2rtc/releases/latest/download/go2rtc_linux_amd64
 SERVICE_NAME = go2rtc
 SERVICE_TEMPLATE = go2rtc.service
 WORKING_DIR = $(shell pwd)

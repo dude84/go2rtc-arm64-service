@@ -1,5 +1,17 @@
+# /home/maciej/_dev/go2rtc-amd64-service/bin/go2rtc.yaml
 streams:
-  cam0:
-#    - exec:rpicam-vid -t 0 --inline -o -
-    - exec:rpicam-vid -t 0 --inline --codec h264 --profile high --width 1920 --height 1080 -o -
-#    - exec:rpicam-vid -t 0 --codec h264 --profile high --inline --framerate 15 --width 1280 --height 720 --bitrate 2000000 -o -
+  uvc_cam:
+    - "exec:sh -c 'v4l2-ctl -d /dev/video0 --stream-mmap=3 --stream-count=0 --stream-to=- \
+        | ffmpeg -hide_banner -loglevel error -fflags nobuffer -flags low_delay \
+          -f rawvideo -pix_fmt yuyv422 -s 256x192 -r 25 -i - \
+          -vf format=yuv420p \
+          -c:v libx264 -preset veryfast -tune zerolatency -profile:v baseline \
+          -f mpegts -'"
+  # add more streams here if needed
+
+api:
+  listen: ":1984"
+rtsp:
+  listen: ":8554"
+webrtc:
+  listen: ":8555"
