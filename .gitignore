@@ -1,2 +1,3 @@
 bin/go2rtc
 thermal_visualizer/*.png
+thermal_visualizer/venv
