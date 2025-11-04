@@ -1,13 +1,27 @@
-# /home/maciej/_dev/go2rtc-amd64-service/bin/go2rtc.yaml
 streams:
+  # Thermal camera - 256x192 thermal-only mode (recommended)
+  # Use: ./thermal_camera_mode.sh thermal
   uvc_cam:
-    - "exec:sh -c 'v4l2-ctl -d /dev/video0 --stream-mmap=3 --stream-count=0 --stream-to=- \
-        | ffmpeg -hide_banner -loglevel error -fflags nobuffer -flags low_delay \
-          -f rawvideo -pix_fmt yuyv422 -s 256x192 -r 25 -i - \
-          -vf scale=640:480,format=yuv420p \
-          -c:v libx264 -preset veryfast -tune zerolatency -profile:v baseline \
-          -f mpegts -'"
-  # add more streams here if needed
+    - "exec:/usr/bin/sh -c '/usr/bin/v4l2-ctl -d /dev/video0 --stream-mmap=3 --stream-count=0 --stream-to=- \
+      | /usr/bin/ffmpeg -hide_banner -loglevel error -fflags nobuffer -flags low_delay \
+        -f rawvideo -pix_fmt yuyv422 -s 256x192 -r 25 -i - \
+        -vf format=yuv420p \
+        -c:v libx264 -preset veryfast -tune zerolatency -profile:v baseline -crf 23 \
+        -f mpegts -'"
+
+  # Thermal camera - 256x392 dual-plane mode
+  # Use: ./thermal_camera_mode.sh dual
+  uvc_cam_dual:
+    - "exec:/usr/bin/sh -c '/usr/bin/v4l2-ctl -d /dev/video0 --stream-mmap=3 --stream-count=0 --stream-to=- \
+      | /usr/bin/ffmpeg -hide_banner -loglevel error -fflags nobuffer -flags low_delay \
+        -f rawvideo -pix_fmt yuyv422 -s 256x392 -r 25 -i - \
+        -vf format=yuv420p \
+        -c:v libx264 -preset veryfast -tune zerolatency -profile:v baseline -crf 23 \
+        -f mpegts -'"
+
+  # Note: Camera advertises MJPEG and H.264 modes but they don't work (firmware bug).
+  # The compressed formats produce invalid data that cannot be decoded.
+  # Only YUYV modes work: thermal (256x192), dual (256x392), mode3 (256x196), portrait1 (192x520)
 
 api:
   listen: ":1984"
