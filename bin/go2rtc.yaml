@@ -1,10 +1,33 @@
 streams:
+  # VIDEO-ONLY STREAM - RECOMMENDED (10% CPU)
+  # Audio encoding uses 100%+ CPU on Pi CM4, making combined stream impractical
   cam0:
-#    - exec:rpicam-vid -t 0 --inline -o -
-    - exec:rpicam-vid -t 0 --inline --codec h264 --profile high --width 1920 --height 1080 -o -
-#    - exec:rpicam-vid -t 0 --codec h264 --profile high --inline --framerate 15 --width 1280 --height 720 --bitrate 2000000 -o -
-    - exec:ffmpeg -f alsa -acodec pcm_s32le -ar 48000 -ac 2 -i hw:0,0 -c:a aac -ar 16000 -ac 1 -f adts -
+    - exec:rpicam-vid -t 0 --inline --codec h264 --profile baseline --width 1280 --height 720 --framerate 15 -o -
 
-  # Audio-only stream for testing
-  mic:
-    - exec:ffmpeg -f alsa -acodec pcm_s32le -ar 48000 -ac 2 -i hw:0,0 -c:a aac -ar 16000 -ac 1 -f adts -
+  # COMBINED VIDEO + AUDIO - NOT RECOMMENDED (125%+ CPU total)
+  # Uncomment cam0-audio stream below only if you can tolerate high CPU usage
+  cam0-audio:
+    - exec:rpicam-vid -t 0 --inline --codec h264 --profile baseline --width 1280 --height 720 --framerate 15 -o -
+    # ffmpeg audio encoding alone uses ~125% CPU even with simplest codec
+    - exec:ffmpeg -f alsa -acodec pcm_s32le -ar 48000 -ac 2 -i hw:0,0 -c:a pcm_mulaw -ar 48000 -ac 1 -f wav -
+
+  # TESTED AND FAILED APPROACHES:
+  # 1. go2rtc native ALSA - doesn't support INMP441's S32_LE format
+  #    - alsa:device=hw:0,0#audio=pcma (hangs/fails)
+  #    - alsa:device=plughw:0,0#audio=pcma (hangs/fails)
+  #    - alsa:device=plughw:0,0#audio=pcmu (hangs/fails)
+  #
+  # 2. AAC encoding - 100%+ CPU
+  #    - exec:ffmpeg ... -c:a aac -b:a 32k ... (too high CPU)
+  #
+  # 3. Opus encoding - incompatible with go2rtc exec protocol
+  #    - exec:ffmpeg ... -c:a libopus -f opus ... (stream fails)
+  #
+  # 4. MULAW with resampling - 125% CPU
+  #    - exec:ffmpeg ... -ar 8000 -c:a pcm_mulaw ... (too high CPU due to resampling)
+  #
+  # CPU BREAKDOWN (when audio enabled):
+  # - rpicam-vid: 8-10% (GPU accelerated)
+  # - go2rtc: 5-6%
+  # - ffmpeg audio: 125% (CPU bottleneck - resampling + encoding)
+  # TOTAL: ~140% CPU
