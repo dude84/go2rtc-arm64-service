@@ -1,10 +1,16 @@
 streams:
   cam0:
-#    - exec:rpicam-vid -t 0 --inline -o -
-    - exec:rpicam-vid -t 0 --inline --codec h264 --profile high --width 1920 --height 1080 --rotation 180 -o -
+    - >
+        exec:
+        rpicam-vid -t 0 --inline --codec h264 --profile high --width 1920 --height 1080 --framerate 15 --rotation 180 \
+        --metering centre
+        --tuning-file /usr/share/libcamera/ipa/rpi/vc4/imx219_noir.json \
+        -o -
 #    - exec:rpicam-vid -t 0 --codec h264 --profile high --inline --framerate 15 --width 1280 --height 720 --bitrate 2000000 -o -
-    - exec:ffmpeg -f alsa -acodec pcm_s32le -ar 48000 -ac 2 -i hw:0,0 -c:a aac -ar 16000 -ac 1 -f adts -
 
   # Audio-only stream for testing
   mic:
     - exec:ffmpeg -f alsa -acodec pcm_s32le -ar 48000 -ac 2 -i hw:0,0 -c:a aac -ar 16000 -ac 1 -f adts -
+
+#other configurations for testing
+#        --shutter 66666 --gain 8.0 --ev 1.0 --denoise cdn_hq --metering centre --brightness 0.1 --saturation 0.8 \
