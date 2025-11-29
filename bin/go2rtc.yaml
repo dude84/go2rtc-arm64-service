@@ -8,9 +8,11 @@ streams:
         -o -
 #    - exec:rpicam-vid -t 0 --codec h264 --profile high --inline --framerate 15 --width 1280 --height 720 --bitrate 2000000 -o -
 
-  # Audio-only stream for testing
+  # Audio-only stream via PipeWire (allows concurrent access)
+  # Using Opus codec in MPEG-TS container (go2rtc supported)
+  # pw-record captures at 16kHz mono directly, reducing processing
   mic:
-    - exec:ffmpeg -f alsa -acodec pcm_s32le -ar 48000 -ac 2 -i hw:0,0 -c:a aac -ar 16000 -ac 1 -f adts -
+    - exec:sh -c "pw-record --format s16 --rate 16000 --channels 1 - | ffmpeg -f s16le -ar 16000 -ac 1 -i pipe:0 -c:a libopus -b:a 24k -compression_level 0 -frame_duration 60 -application voip -f mpegts -"
 
 #other configurations for testing
 #        --shutter 66666 --gain 8.0 --ev 1.0 --denoise cdn_hq --metering centre --brightness 0.1 --saturation 0.8 \
