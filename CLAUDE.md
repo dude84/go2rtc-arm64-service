@@ -2,6 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Important Rules
+- Never add "Generated with Claude Code" or "Co-Authored-By: Claude" to commits or PRs
+
 ## Project Overview
 
 This repository manages a go2rtc ARM64 binary deployment for streaming camera feeds on Raspberry Pi or other ARM64 Linux systems. go2rtc is a camera streaming application that supports multiple protocols (WebRTC, RTSP, etc.).
@@ -44,12 +47,60 @@ sudo systemctl status go2rtc
 
 The `service-install` target automatically starts the service after installation. The service uses the [go2rtc.service](go2rtc.service) template with placeholders that are replaced during installation.
 
+## Prerequisites
+
+### Video Streaming (Camera)
+- `rpicam-vid` - Raspberry Pi camera tool (comes with Raspberry Pi OS)
+
+### Audio Streaming (Microphone with Opus codec)
+
+#### 1. Install PipeWire and FFmpeg
+```bash
+sudo apt update
+sudo apt install -y pipewire pipewire-audio-client-libraries pipewire-pulse ffmpeg
+```
+
+#### 2. I2S Microphone Setup (e.g., INMP441)
+Add to `/boot/firmware/config.txt`:
+```
+dtparam=i2s=on
+dtoverlay=googlevoicehat-soundcard
+```
+
+Then reboot:
+```bash
+sudo reboot
+```
+
+#### 3. Start PipeWire (user service)
+PipeWire runs as a user service. Start it manually or it auto-starts in desktop sessions:
+```bash
+systemctl --user start pipewire pipewire-pulse wireplumber
+```
+
+Verify microphone is detected:
+```bash
+wpctl status   # Should show audio source under "Sources"
+arecord -l     # Should list capture hardware
+```
+
 ## Configuration
 
-The [bin/go2rtc.yaml](bin/go2rtc.yaml) file defines camera streams using the `rpicam-vid` command for Raspberry Pi cameras. The configuration shows:
-- Stream name: `cam0`
-- Uses `rpicam-vid` to capture H.264 video at 1920x1080
-- Alternative commented configurations for different resolutions/framerates
+The [bin/go2rtc.yaml](bin/go2rtc.yaml) file defines camera and audio streams:
+
+### Video Stream (`cam0`)
+- Uses `rpicam-vid` to capture H.264 video at 1920x1080@15fps
+- Configured for IMX219 NoIR camera with 180° rotation
+
+### Audio Stream (`mic`)
+- Uses PipeWire's `pw-record` for microphone capture
+- Encodes to Opus codec via FFmpeg (16kHz mono, 24kbps, VoIP optimized)
+- Outputs in MPEG-TS container format for go2rtc compatibility
+
+The audio pipeline:
+```
+pw-record (16kHz mono s16le) → ffmpeg (libopus encoding) → MPEG-TS output
+```
 
 To modify camera settings, edit the stream configuration in [bin/go2rtc.yaml](bin/go2rtc.yaml) and adjust the `rpicam-vid` parameters (resolution, framerate, bitrate, codec profile).
 
