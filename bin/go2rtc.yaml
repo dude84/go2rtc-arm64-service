@@ -2,17 +2,16 @@ streams:
   cam0:
     - >
         exec:
-        rpicam-vid -t 0 --inline --codec h264 --profile high --width 1920 --height 1080 --framerate 15 --rotation 180 \
+        rpicam-vid -t 0 --inline --codec h264 --profile high --width 1920 --height 1080 --framerate 15 --rotation 180
         --metering centre
-        --tuning-file /usr/share/libcamera/ipa/rpi/vc4/imx219_noir.json \
         -o -
-#    - exec:rpicam-vid -t 0 --codec h264 --profile high --inline --framerate 15 --width 1280 --height 720 --bitrate 2000000 -o -
+    - exec:sh -c "pw-record --format s16 --rate 16000 --channels 1 - | ffmpeg -f s16le -ar 16000 -ac 1 -i pipe:0 -c:a libopus -b:a 24k -compression_level 0 -frame_duration 60 -application voip -f mpegts -"
 
   # Audio-only stream via PipeWire (allows concurrent access)
-  # Using Opus codec in MPEG-TS container (go2rtc supported)
-  # pw-record captures at 16kHz mono directly, reducing processing
   mic:
     - exec:sh -c "pw-record --format s16 --rate 16000 --channels 1 - | ffmpeg -f s16le -ar 16000 -ac 1 -i pipe:0 -c:a libopus -b:a 24k -compression_level 0 -frame_duration 60 -application voip -f mpegts -"
 
 #other configurations for testing
 #        --shutter 66666 --gain 8.0 --ev 1.0 --denoise cdn_hq --metering centre --brightness 0.1 --saturation 0.8 \
+# old Camera Module v2 NoIR tuning (HQ camera imx477 tuning is auto-detected, no flag needed):
+#        --tuning-file /usr/share/libcamera/ipa/rpi/vc4/imx219_noir.json \
