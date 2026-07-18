@@ -1,10 +1,13 @@
 streams:
   cam0:
-    - >
-        exec:
-        rpicam-vid -t 0 --inline --codec h264 --profile high --width 1920 --height 1080 --framerate 15 --rotation 180
-        --metering centre
-        -o -
+    # video now comes from picam-service (owns the camera; allows 12MP stills while streaming)
+    - exec:curl -sN http://127.0.0.1:8000/stream.h264
+    # old direct rpicam-vid producer (pre picam-service):
+    #- >
+    #    exec:
+    #    rpicam-vid -t 0 --inline --codec h264 --profile high --width 1920 --height 1080 --framerate 15 --rotation 180
+    #    --metering centre
+    #    -o -
     - exec:sh -c "pw-record --format s16 --rate 16000 --channels 1 - | ffmpeg -f s16le -ar 16000 -ac 1 -i pipe:0 -c:a libopus -b:a 24k -compression_level 0 -frame_duration 60 -application voip -f mpegts -"
 
   # Audio-only stream via PipeWire (allows concurrent access)
