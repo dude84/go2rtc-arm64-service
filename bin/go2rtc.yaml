@@ -14,6 +14,12 @@ streams:
   mic:
     - exec:sh -c "pw-record --format s16 --rate 16000 --channels 1 - | ffmpeg -f s16le -ar 16000 -ac 1 -i pipe:0 -c:a libopus -b:a 24k -compression_level 0 -frame_duration 60 -application voip -f mpegts -"
 
+  # 4K UVC microscope (YW5109, /dev/video2), MJPEG source hardware-encoded to H.264 for the
+  # browser/WebRTC path. On-demand like cam0 (go2rtc only runs the exec pipe while a client
+  # is connected). View-only in picam-service's UI; capture tools stay on cam0/HQ camera.
+  scope0:
+    - exec:ffmpeg -hide_banner -f v4l2 -input_format mjpeg -video_size 1920x1080 -framerate 30 -i /dev/video2 -pix_fmt yuv420p -c:v h264_v4l2m2m -b:v 4M -g 60 -bsf:v h264_mp4toannexb -f h264 -
+
 #other configurations for testing
 #        --shutter 66666 --gain 8.0 --ev 1.0 --denoise cdn_hq --metering centre --brightness 0.1 --saturation 0.8 \
 # old Camera Module v2 NoIR tuning (HQ camera imx477 tuning is auto-detected, no flag needed):

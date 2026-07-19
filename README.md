@@ -1,5 +1,10 @@
 # go2rtc-arm64-service
 
+> **⚠️ Deprecated (2026-07-19):** go2rtc now lives inside
+> [`picam-service`](https://github.com/dude84/picam-service) (`go2rtc/` directory there),
+> and the running `go2rtc` systemd unit points at that location. This repo is kept for
+> history only — do not edit configs here expecting them to take effect.
+
 Camera + microphone streaming for a Raspberry Pi, built around [go2rtc](https://github.com/AlexxIT/go2rtc). This repo manages the ARM64 binary, its configuration, and a systemd service so the stream comes up automatically after boot.
 
 This is a **deployment repo**, not source code: it downloads the prebuilt go2rtc binary, configures it for the local hardware, and installs it as a service.
